@@ -120,7 +120,7 @@ snowsurvey_fixed %>%
   filter(Snow_cover > 100) 
 ```
 
-We have two values above 100, with an interesting 470%! ☃️ We should probavly set those values to NAs:
+We have two values above 100, with an interesting 470%! ☃️ We should probably set those values to NAs:
 
 ```{r}
 snowsurvey_fixed <- snowsurvey_fixed %>% 

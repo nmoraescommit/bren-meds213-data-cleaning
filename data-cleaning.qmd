@@ -7,15 +7,14 @@ format: html
 #| message: false  
 
 # Libraries
-library(dplyr)
-library(tidyr)
-library(readr)
+library(tidyverse)
+library(here)
 library(naniar)
 
 # file names
-datadir_raw <- file.path("data","raw")
+datadir_raw <- here("data", "raw/")
 
-datadir_processed <- file.path("data", "processed/")
+datadir_processed <- here("data", "processed/")
 
 species_file <- "ASDN_Daily_species.csv"
 
@@ -31,7 +30,7 @@ Import the snow survey
 
 ```{r}
 # Import the species
-snowsurvey_csv <- read_csv(file.path(datadir_raw, snowsurvey_file))
+snowsurvey_csv <- read_csv(here(datadir_raw, snowsurvey_file))
 
 glimpse(snowsurvey_csv)
 

@@ -61,7 +61,7 @@ snowsurvey_fixed_hw <- snowsurvey_csv %>%
   mutate(across(ends_with("_cover"), ~ifelse(.x == "unk", NA, .x))) %>%
   mutate(across(ends_with("_cover"), ~ifelse(.x == "<1", NA, .x)))
 
-# Verify we have only numeric values or NAs left for all 'cover columns
+# Verify only numeric values or NAs left for all 'cover` columns
 snowsurvey_fixed_hw %>% 
   count(Water_cover) %>%
   filter(is.na(as.numeric(Water_cover)))
@@ -78,7 +78,7 @@ snowsurvey_fixed_hw %>%
 Now that we've addressed the non-numeric values for all columns, let's convert the columns to numeric and check for values outside the expected range (0-100) for a percentage:
 
 ```{r}
-# Convert to numeric
+# Convert to numeric values
 snowsurvey_fixed_hw <- snowsurvey_fixed_hw %>%
   mutate(Water_cover = as.numeric(Water_cover)) %>%
   mutate(Land_cover = as.numeric(Land_cover)) %>%

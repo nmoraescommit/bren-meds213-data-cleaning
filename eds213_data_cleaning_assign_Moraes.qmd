@@ -1,0 +1,157 @@
+---
+title: "Data Cleaning HW"
+author: "Naomi Moraes"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+#| message: false  
+
+# Libraries
+library(tidyverse)
+library(here)
+
+# file names
+snowsurvey_csv <- read_csv(here("data/raw/ASDN_Snow_survey.csv"))
+```
+
+
+### Cleaning columns
+
+Let's explore the `_cover` columns:
+
+```{r}
+# Count occurrences of each value in Water_cover
+snowsurvey_csv %>% 
+  count(Water_cover)
+
+# Count occurrences of each value in Land_cover
+snowsurvey_csv %>% 
+  count(Land_cover)
+```
+
+Now, let's focus on non-numeric values:
+
+```{r}
+# Identify non-numeric values in Water_cover and Land_cover
+snowsurvey_csv %>% 
+  count(Water_cover) %>%
+  filter(is.na(as.numeric(Water_cover)))
+
+snowsurvey_csv %>% 
+  count(Land_cover) %>%
+  filter(is.na(as.numeric(Land_cover)))
+```
+
+Both Water_cover and Land_cover have the same non-numeric problematic values of "-", ".", "n/a", "unk" as well as NA. We want to convert all non-numeric characters to NA.
+
+### Cleaning the Water_cover and Land_cover columns
+
+Following the same approach we used for `Snow_cover`, I'll clean the `Water_cover` and `Land_cover` column.
+
+```{r}
+# Replace non-numeric values with NA for both Water_cover and Land_cover
+snowsurvey_fixed_hw <- snowsurvey_csv %>% 
+  mutate(across(ends_with("_cover"), ~ifelse(.x == ".", NA, .x))) %>%
+  mutate(across(ends_with("_cover"), ~ifelse(.x == "-", NA, .x))) %>%
+  mutate(across(ends_with("_cover"), ~ifelse(.x == "n/a", NA, .x))) %>%
+  mutate(across(ends_with("_cover"), ~ifelse(.x == "unk", NA, .x))) %>%
+  mutate(across(ends_with("_cover"), ~ifelse(.x == "<1", NA, .x)))
+
+# Verify we have only numeric values or NAs left for all 'cover columns
+snowsurvey_fixed_hw %>% 
+  count(Water_cover) %>%
+  filter(is.na(as.numeric(Water_cover)))
+
+snowsurvey_fixed_hw %>% 
+  count(Land_cover) %>%
+  filter(is.na(as.numeric(Land_cover)))
+
+snowsurvey_fixed_hw %>% 
+  count(Snow_cover) %>%
+  filter(is.na(as.numeric(Snow_cover)))
+```
+
+Now that we've addressed the non-numeric values for all columns, let's convert the columns to numeric and check for values outside the expected range (0-100) for a percentage:
+
+```{r}
+# Convert to numeric
+snowsurvey_fixed_hw <- snowsurvey_fixed_hw %>%
+  mutate(Water_cover = as.numeric(Water_cover)) %>%
+  mutate(Land_cover = as.numeric(Land_cover)) %>%
+  mutate(Snow_cover = as.numeric(Snow_cover))
+
+# Check for values greater than 100
+snowsurvey_fixed_hw %>% 
+  filter(Snow_cover > 100)
+
+snowsurvey_fixed_hw %>% 
+  filter(Water_cover > 100)
+
+snowsurvey_fixed_hw %>% 
+  filter(Land_cover > 100)
+```
+
+`Snow_cover` has two values above 100 and `Water_cover` has one value above 100. Let's set them to NA.
+
+```{r}
+# Fix values greater than 100
+snowsurvey_fixed_hw <- snowsurvey_fixed_hw %>%
+  mutate(Water_cover = ifelse(Water_cover > 100, NA, Water_cover)) %>%
+  mutate(Snow_cover = ifelse(Snow_cover > 100, NA, Snow_cover)) %>%
+  mutate(Land_cover = ifelse(Land_cover > 100, NA, Land_cover)) # No values above 100, but added here for consistency
+
+# Check for negative values
+snowsurvey_fixed_hw %>% 
+  filter(!is.na(Water_cover) & Water_cover < 0)
+
+snowsurvey_fixed_hw %>% 
+  filter(!is.na(Land_cover) & Land_cover < 0)
+
+snowsurvey_fixed_hw %>% 
+  filter(!is.na(Snow_cover) & Snow_cover < 0)
+```
+
+There are negative values for `Land_cover` - let's set these values to NA.
+
+```{r}
+# Fix negative values
+snowsurvey_fixed_hw <- snowsurvey_fixed_hw %>%
+  mutate(Land_cover = ifelse(!is.na(Land_cover) & Land_cover < 0, NA, Land_cover))
+```
+
+### Inferring Missing Values
+
+When inferring missing values - there must be at least two other non-NA values, to recompute the `Total_area` column. Thus, for rows with > 1`_cover` variables missing, `Total_area` should be NA as well.
+
+First, let's infer the missing values that fits the previously mentioned condition.
+
+```{r}
+# Convert total cover to numeric
+snowsurvey_fixed_hw <- snowsurvey_fixed_hw %>%
+    mutate(Total_cover = as.numeric(Total_cover))
+
+# If total cover is available and only one cover varaible is missing:
+snowsurvey_inferred <- snowsurvey_fixed_hw %>% 
+  mutate(Snow_cover = case_when(is.na(Snow_cover) & !is.na(Water_cover) & !is.na(Land_cover) & !is.na(Total_cover) ~ Total_cover - Water_cover - Land_cover, TRUE ~ Snow_cover)) %>%
+  mutate(Water_cover = case_when(!is.na(Snow_cover) & is.na(Water_cover) & !is.na(Land_cover) & !is.na(Total_cover) ~ Total_cover - Snow_cover - Land_cover, TRUE ~ Water_cover)) %>%
+  mutate(Land_cover = case_when(!is.na(Snow_cover) & !is.na(Water_cover) & is.na(Land_cover) & !is.na(Total_cover) ~ Total_cover - Snow_cover - Water_cover,TRUE ~ Land_cover)) %>%
+  mutate(Total_cover = case_when(!is.na(Snow_cover) & !is.na(Water_cover) & !is.na(Land_cover) & is.na(Total_cover) ~ Snow_cover + Water_cover + Land_cover,TRUE ~ Total_cover))
+```
+
+Looking at our new snowsurvey_inferred dataframe, we see that Total_cover has more values than 100. Thus, we should convert all rows, in `Total_cover` that do not equal 100 into an NA. (This is becuase the metadata states: "Total_cover -	Total sum (to check the above percents; should always sum to 100)".) There seems to be values greater and less than 100.
+
+```{r}
+# Convert all rows in `Total_cover` not equal to 100 into NAs
+snowsurvey_inferred <- snowsurvey_inferred %>%
+  mutate(Total_cover = ifelse(Total_cover != 100, NA, Total_cover))
+```
+
+Now, we shall save the cleaned dataframe as a csv in a 'processed' data folder in the repository.
+
+```{r}
+write_csv(snowsurvey_inferred, file.path("data/processed/all_cover_fixed_NaomiMoraes.csv"))
+```

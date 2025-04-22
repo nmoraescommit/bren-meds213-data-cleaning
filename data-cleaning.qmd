@@ -89,15 +89,16 @@ snowsurvey_fixed <- snowsurvey_fixed %>%
 
 ```{r}
 snowsurvey_fixed <- snowsurvey_fixed %>% 
-  mutate(Snow_cover = ifelse(Snow_cover == "n/a", NA, Snow_cover))
+ mutate(across(ends_with("_cover"), ~ifelse(.x == "n/a", NA, .x)))
 ```
 
 "unk" is probably an abbreviation for unknown:
 
 ```{r}
 snowsurvey_fixed <- snowsurvey_fixed %>% 
-  mutate(Snow_cover = ifelse(Snow_cover == "unk", NA, Snow_cover))
+   mutate(across(ends_with("_cover"), ~ifelse(.x == "unk", NA, .x)))
 ```
+
 
 Finally we will set "<1" as zero (quite arbitrary indeed):
 
@@ -149,6 +150,103 @@ Let's write the presence table to a csv file:
 ```{r}
 write_csv(snowsurvey_fixed, file.path(datadir_processed, "snow_cover.csv"))
 ```
+
+
+### Check the Water data to see if there were other problematic values
+
+```{r}
+snowsurvey_fixed %>% 
+  count(Water_cover) %>%
+  filter(is.na(as.numeric(Water_cover)))
+```
+
+All fixed for water, let's make it numeric then:
+
+```{r}
+snowsurvey_fixed <- snowsurvey_fixed %>% 
+  mutate(Water_cover = as.numeric(Water_cover))
+```
+
+Yeah we have finally a numeric column 🎉. Now we can verify that all the values are between 0 and 100:
+
+```{r}
+snowsurvey_fixed %>% 
+  filter(Water_cover > 100) 
+```
+
+Sounds like a lot of water 💧 !!!!
+
+```{r}
+snowsurvey_fixed <- snowsurvey_fixed %>% 
+  mutate(Water_cover = ifelse(Water_cover > 100, NA, Water_cover))
+```
+
+Let's check for negative values:
+
+```{r}
+snowsurvey_fixed %>% 
+  filter(Water_cover < 0) 
+```
+
+All good!!
+
+### Land 
+
+
+```{r}
+snowsurvey_fixed %>% 
+  count(Land_cover) %>%
+  filter(is.na(as.numeric(Land_cover)))
+```
+
+All fixed for land, let's make it numeric then:
+
+```{r}
+snowsurvey_fixed <- snowsurvey_fixed %>% 
+  mutate(Land_cover = as.numeric(Land_cover))
+```
+
+Yeah we have finally a numeric column 🎉. Now we can verify that all the values are between 0 and 100:
+
+```{r}
+snowsurvey_fixed %>% 
+  filter(Land_cover > 100) 
+```
+
+All good!
+
+Let's check for negative values:
+
+```{r}
+snowsurvey_fixed %>% 
+  filter(Land_cover < 0) 
+```
+
+Let's fix this
+
+```{r}
+snowsurvey_fixed <- snowsurvey_fixed  %>%
+  mutate(Water_cover = ifelse(Land_cover < 0, NA, Land_cover))
+  
+```
+
+
+### Total Cover
+
+The metadata says this column is like a flag that should always be 100. Let's first use this to try to fix as much Na we can.
+
+1. We will be assuming that if we have only one NA in the cover columne we could compute the value by computing: `cover_NA = 100 - coverA - coverB`
+2. If we have only one value but it is 100, then the others should be set to `0` and not NA
+
+We will do this in a separate column than the existing one so we can compare
+
+
+
+
+
+
+
+
 
 <hr> 
 

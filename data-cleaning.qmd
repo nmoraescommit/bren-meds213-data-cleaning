@@ -331,7 +331,11 @@ snowsurvey_final <- snowsurvey_fixed %>%
   mutate(Total_cover = Snow_cover + Water_cover + Land_cover,  # recompute total cover on the latest
          Plot = ifelse(is.na(Plot), paste0(Site, "p1"), Plot), # can not afford to have NA as part of primary key
          Location = ifelse(is.na(Location), paste0(Location, "l1"), Location), # can not afford to have NA as part of primary key
-         Observer =  sub(",.*", "", Observer)                  # Keep only the first observer
+         Observer =  sub(",.*", "", Observer),
+         Observer =  sub("&.*", "", Observer),
+         Observer =  sub("-.*", "", Observer),
+         Observer =  sub("/.*", "", Observer), # Keep only the first observer
+         Site = ifelse(Site== "ebmain", "eaba", Site) # Assuming this is a typo
          ) %>% 
   relocate(Total_cover, .after = Land_cover) %>%
   distinct(Site, Year, Date, Plot, Location, .keep_all = TRUE) # there are some duplicated rows; several measurements per day?

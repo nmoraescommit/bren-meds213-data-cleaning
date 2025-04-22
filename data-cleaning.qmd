@@ -328,10 +328,11 @@ Final manipulations to share our table:
 snowsurvey_final <- snowsurvey_fixed %>%
   select(Site, Year, Date2, Plot, Location, Snow_cover, Water_cover, Land_cover, Observer, Notes) %>% # Select columns of interest
   rename(Date = Date2) %>%
-  mutate(Total_cover = Snow_cover + Water_cover + Land_cover,
+  mutate(Total_cover = Snow_cover + Water_cover + Land_cover,  # recompute total cover on the latest
          Plot = ifelse(is.na(Plot), paste0(Site, "p1"), Plot), # can not afford to have NA as part of primary key
-         Location = ifelse(is.na(Location), paste0(Location, "l1"), Location) # can not afford to have NA as part of primary key
-         ) %>%  # recompute total cover on the latest
+         Location = ifelse(is.na(Location), paste0(Location, "l1"), Location), # can not afford to have NA as part of primary key
+         Observer =  sub(",.*", "", Observer)                  # Keep only the first observer
+         ) %>% 
   relocate(Total_cover, .after = Land_cover) %>%
   distinct(Site, Year, Date, Plot, Location, .keep_all = TRUE) # there are some duplicated rows; several measurements per day?
 ```

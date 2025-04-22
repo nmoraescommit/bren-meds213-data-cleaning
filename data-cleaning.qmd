@@ -333,10 +333,8 @@ snowsurvey_final <- snowsurvey_fixed %>%
          Location = ifelse(is.na(Location), paste0(Location, "l1"), Location) # can not afford to have NA as part of primary key
          ) %>%  # recompute total cover on the latest
   relocate(Total_cover, .after = Land_cover) %>%
-  distinct(Site, Year, Date, Plot, Location, .keep_all = TRUE) # there are some duplicated rows
+  distinct(Site, Year, Date, Plot, Location, .keep_all = TRUE) # there are some duplicated rows; several measurements per day?
 ```
-
-
 
 
 Let's write the presence table to a csv file:

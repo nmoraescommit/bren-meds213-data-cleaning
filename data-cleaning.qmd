@@ -339,12 +339,8 @@ snowsurvey_final <- snowsurvey_fixed %>%
 Let's write the presence table to a csv file:
 
 ```{r}
-write_csv(snowsurvey_final, file.path(datadir_processed, "snow_survey_fixed.csv"))
+write_csv(snowsurvey_final, here(datadir_processed, "snow_survey_fixed.csv"))
 ```
-
-
-
-
 
 
 

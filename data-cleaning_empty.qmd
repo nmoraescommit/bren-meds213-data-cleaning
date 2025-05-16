@@ -50,8 +50,6 @@ Let's focus on the non-numeric values as a starting point:
 
 ```{r}
 snowsurvey_csv %>%
-  count(Snow_cover) %>%
-  filter(is.na(as.numeric(Snow_cover)))
 
 ```
 
@@ -70,10 +68,7 @@ snowsurvey_csv %>%
 Interestingly, when there is a "dot" for snow cover, it is also the case for all the other covers. Let's replace those with NA since there is no supplemental information in the provided metadata about the use of dots
 
 ```{r}
-snowsurvey_fixed <- snowsurvey_csv %>%
-  # filter(Snow_cover ==".") %>%
-  mutate(Snow_cover = ifelse(Snow_cover==".", NA, Snow_cover))
-
+snowsurvey_fixed <- 
 ```
 
 #### `-` values
@@ -81,18 +76,14 @@ snowsurvey_fixed <- snowsurvey_csv %>%
 Is he problem is similar with "-"?
 
 ```{r}
-snowsurvey_csv %>%
-  filter(Snow_cover == "-") %>%
-  View()
+snowsurvey_csv 
 ```
 
 
 let's set it to NA:
 
 ```{r}
-snowsurvey_fixed <- snowsurvey_fixed %>%
-  # filter(Snow_cover == "-") %>%
-  mutate(Snow_cover = ifelse(Snow_cover=="-", NA, Snow_cover))
+snowsurvey_fixed <- 
 ```
 
 #### `n/a` values
@@ -101,17 +92,15 @@ snowsurvey_fixed <- snowsurvey_fixed %>%
 
 ```{r}
 snowsurvey_csv %>%
-  filter(Snow_cover == "n/a") %>%
-  View()
+  
 ```
 
 
 Same pattern, let's substitute with NA:
 
 ```{r}
-snowsurvey_fixed <- snowsurvey_fixed %>%
-  # filter(Snow_cover == "n/a") %>%
-  mutate(Snow_cover = ifelse(Snow_cover=="n/a", NA, Snow_cover))
+snowsurvey_fixed <- 
+ 
 ```
 
 #### `unk` values
@@ -120,15 +109,12 @@ What about "unk"? It is probably an abbreviation for unknown:
 
 ```{r}
 snowsurvey_csv %>%
-  filter(Snow_cover == "unk") %>%
-  View()
+  
 ```
 
 
 ```{r}
-snowsurvey_fixed <- snowsurvey_fixed %>%
-  # filter(Snow_cover == "unk") %>%
-  mutate(Snow_cover = ifelse(Snow_cover=="unk", NA, Snow_cover))
+snowsurvey_fixed <- 
 ```
 
 #### `<1` values
@@ -136,15 +122,11 @@ snowsurvey_fixed <- snowsurvey_fixed %>%
 Finally What should we replace"<1" with?
 
 ```{r}
-snowsurvey_csv %>%
-  filter(Snow_cover == "<1") %>%
-  View()
+
 ```
 
 ```{r}
-snowsurvey_fixed <- snowsurvey_fixed %>%
-  # filter(Snow_cover == "<1") %>%
-  mutate(Snow_cover = ifelse(Snow_cover=="<1", "0", Snow_cover))
+
 ```
 
 
@@ -161,10 +143,7 @@ snowsurvey_fixed %>%
 Ok, we can do the transformation:
 
 ```{r}
-snowsurvey_fixed <- snowsurvey_fixed %>%
-  mutate(Snow_cover = as.numeric(Snow_cover))
-
-glimpse(snowsurvey_fixed)
+snowsurvey_fixed <- 
 ```
 
 Yeah we have finally a numeric column 🎉. 
@@ -175,22 +154,20 @@ Yeah we have finally a numeric column 🎉.
 We are dealing with percentages, so we should verify that all the values are between 0 and 100:
 
 ```{r}
- snowsurvey_fixed %>%
-  filter(Snow_cover > 100)
+ snowsurvey_fixed 
 ```
 
 We have two values above 100, with an interesting 470%! ☃️ We should probably set those values to NAs:
 
 ```{r}
-snowsurvey_fixed <- snowsurvey_fixed %>%
-  mutate(Snow_cover = ifelse(Snow_cover > 100, NA, Snow_cover))
+snowsurvey_fixed <- 
 ```
 
 Let's check for negative values:
 
 ```{r}
  snowsurvey_fixed %>%
-  filter(Snow_cover < 0)
+  
 ```
 
 No negative value detected ✅
@@ -236,32 +213,22 @@ This data model is not convenient for a database, we will have to switch to a lo
 ### Data cleaning
 
 ```{r}
-species_long <- species_csv %>%
-  pivot_longer(
-    cols = !c(Year, Site, Date, Jdate, Num_observers, All_obs_reported, Observer_hours),
-    names_to = "species",
-    values_to = "species_count",
-    values_transform = list(species_count = as.character)
-  )
+species_long <- 
 ```
 
-
-```{r}
-
-```
 
 We want to focus on the presence and absence of species and not the count. Let's create a new column for presence where anything else than 0 is considered present
 
 ```{r}
 species_presence <- species_long %>%
-  mutate(species_presence = ifelse(species_count == "0", 0, 1))
+  
 ```
 
 We can remove some columns: "Num_observers", "All_obs_reported", "Observer_hours" are here to help to compute the effort of observation but since we just want presence and absence, we do not need it. We can also remove all the zeros values to reduce the size of our data set:
 
 ```{r}
 species_presence <- species_presence %>%
-  select(-c(Num_observers, All_obs_reported, Observer_hours))
+  
 
 ```
 

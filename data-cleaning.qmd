@@ -284,7 +284,7 @@ Decisions:
 
 ```{r}
 snowsurvey_fixed <- snowsurvey_fixed %>% 
-  filter((Total_cover_computed >= 80 & Total_cover_computed <= 120) | (Water_cover + Land_cover == 0 & Snow_cover > 0))
+  filter((Total_cover_computed >= 80 & Total_cover_computed <= 120) | (Water_cover + Land_cover == 0 & Snow_cover >= 0))
 ```
 
 ### Dates

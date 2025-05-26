@@ -51,7 +51,7 @@ This data set is hosted on [NSF Artic Data Center](https://arcticdata.io/catalog
 
 ## DATA-SPECIFIC INFORMATION FOR:
 
-For the file  data/processed/all_cover_fixed_EvaNewby.csv : 
+For the file  data/processed/all_cover_fixed_NaomiMoraes.csv : 
 
 1. Number of variables: 11
 
